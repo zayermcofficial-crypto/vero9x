@@ -66,6 +66,7 @@ export interface GuildSettings {
   automod_mentions: number; mention_limit: number; antiraid: number; log_messages: number;
   ai_enabled: number; ai_persona: string; ai_instructions: string | null; ai_daily_limit: number;
   leveling_enabled: number; xp_min: number; xp_max: number; xp_cooldown: number;
+  dj_role: string | null;
   economy_enabled: number; currency: string; daily_amount: number; weekly_amount: number; work_min: number; work_max: number;
 }
 

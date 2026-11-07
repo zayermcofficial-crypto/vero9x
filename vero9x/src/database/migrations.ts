@@ -78,4 +78,9 @@ export const migrations: Migration[] = [
       CREATE INDEX idx_reminders_due ON reminders (due_at);
     `,
   },
+  {
+    version: 2,
+    name: 'music_dj_role',
+    sql: `ALTER TABLE guild_settings ADD COLUMN dj_role TEXT;`,
+  },
 ];

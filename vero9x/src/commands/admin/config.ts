@@ -26,6 +26,8 @@ const command: Command = {
     .addSubcommand((s) => s.setName('toggle').setDescription('Turn a module on or off')
       .addStringOption((o) => o.setName('module').setDescription('Module').setRequired(true).addChoices(...TOGGLES.map(([name, value]) => ({ name, value }))))
       .addBooleanOption((o) => o.setName('enabled').setDescription('On or off').setRequired(true)))
+    .addSubcommand((s) => s.setName('dj').setDescription('Set the DJ role that can control music (empty = everyone)')
+      .addRoleOption((o) => o.setName('role').setDescription('DJ role (leave empty to clear)')))
     .addSubcommand((s) => s.setName('badword').setDescription('Manage the bad-word list')
       .addStringOption((o) => o.setName('action').setDescription('Action').setRequired(true).addChoices({ name: 'Add', value: 'add' }, { name: 'Remove', value: 'remove' }, { name: 'List', value: 'list' }))
       .addStringOption((o) => o.setName('word').setDescription('Word or phrase').setMaxLength(40)))
@@ -69,6 +71,7 @@ const command: Command = {
         { name: 'Modules', value: TOGGLES.map(([n, k]) => `${on(s[k])} ${n}`).join('\n'), inline: true },
         { name: 'Moderation', value: `Mention limit: ${s.mention_limit}\nTimeout at ${s.warn_timeout_at || 'off'} warns (${s.warn_timeout_minutes}m)\nBan at ${s.warn_ban_at || 'off'} warns`, inline: true },
         { name: 'Leveling', value: `${s.xp_min}-${s.xp_max} XP / ${s.xp_cooldown}s • rewards: ${rewards}` },
+        { name: 'Music', value: `DJ role: ${s.dj_role ? `<@&${s.dj_role}>` : '`everyone`'}` },
         { name: 'Economy', value: `${s.currency} daily ${s.daily_amount} • weekly ${s.weekly_amount} • work ${s.work_min}-${s.work_max}` })], flags: MessageFlags.Ephemeral, allowedMentions: { parse: [] } }));
     }
     if (sub === 'channel') {
@@ -88,6 +91,12 @@ const command: Command = {
       const key = i.options.getString('module', true) as keyof GuildSettings; const on = i.options.getBoolean('enabled', true);
       updateSetting(gid, key, on ? 1 : 0);
       return void (await ok(`Module is now **${on ? 'enabled' : 'disabled'}**.`));
+    }
+    if (sub === 'dj') {
+      const role = i.options.getRole('role');
+      if (role && (role.id === gid || role.managed)) return void (await bad('Pick a normal role.'));
+      updateSetting(gid, 'dj_role', role?.id ?? null);
+      return void (await ok(role ? `DJ role set to ${role}. Everyone can still queue songs; only DJs can skip, stop and change settings.` : 'DJ role cleared — everyone in the voice channel can control the music.'));
     }
     if (sub === 'badword') {
       const action = i.options.getString('action', true); const word = i.options.getString('word')?.toLowerCase().trim().replace(/[^\p{L}\p{N} ]+/gu, ' ').replace(/\s+/g, ' ').trim();

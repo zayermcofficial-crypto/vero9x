@@ -3,6 +3,7 @@ import { env } from './config/env';
 import { db, migrate } from './database/db';
 import { loadCommands, registerCommands } from './handlers/commandHandler';
 import { loadEvents } from './handlers/eventHandler';
+import { initMusic } from './music/manager';
 import { logger } from './utils/logger';
 
 async function main() {
@@ -15,6 +16,7 @@ async function main() {
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent, // privileged: enable in the Developer Portal
       GatewayIntentBits.GuildModeration,
+      GatewayIntentBits.GuildVoiceStates, // needed for music
     ],
     partials: [Partials.GuildMember],
     // Keep memory bounded on small hosts
@@ -22,6 +24,7 @@ async function main() {
     sweepers: { ...Options.DefaultSweeperSettings, messages: { interval: 300, lifetime: 900 } },
   });
 
+  initMusic(client);
   client.commands = loadCommands();
   logger.info(`Loaded ${client.commands.size} commands`);
   loadEvents(client);

@@ -1,5 +1,6 @@
 import { Events, Interaction, PermissionsBitField } from 'discord.js';
 import { getSettings } from '../database/db';
+import { handleMusicButton } from '../music/controls';
 import { BotEvent } from '../types';
 import { alreadySeen } from '../utils/dedupe';
 import { friendlyError, replyError } from '../utils/embeds';
@@ -14,6 +15,15 @@ setInterval(() => {
 const event: BotEvent = {
   name: Events.InteractionCreate,
   async execute(interaction: Interaction) {
+    if (interaction.isAutocomplete()) {
+      await interaction.client.commands.get(interaction.commandName)?.autocomplete?.(interaction).catch(() => undefined);
+      return;
+    }
+    if (interaction.isButton() && interaction.customId.startsWith('music:')) {
+      if (alreadySeen(interaction.id)) return;
+      await handleMusicButton(interaction).catch((err) => logger.warn('Music button failed', err as Error));
+      return;
+    }
     if (!interaction.isChatInputCommand()) return;
     if (alreadySeen(interaction.id)) return;
 

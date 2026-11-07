@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Collection, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder } from 'discord.js';
+import { AutocompleteInteraction, ChatInputCommandInteraction, Collection, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder } from 'discord.js';
 
 export interface Command {
   data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
@@ -7,6 +7,7 @@ export interface Command {
   /** Per-user cooldown in seconds. */
   cooldown?: number;
   execute(interaction: ChatInputCommandInteraction): Promise<void>;
+  autocomplete?(interaction: AutocompleteInteraction): Promise<void>;
 }
 export interface LoadedCommand extends Command {
   category: string;

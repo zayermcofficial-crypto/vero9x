@@ -13,6 +13,11 @@ export const env = {
   devGuildId: process.env.DEV_GUILD_ID?.trim() || undefined,
   dataDir: path.resolve(process.env.DATA_DIR?.trim() || './data'),
   autoRegister: (process.env.AUTO_REGISTER ?? 'true').toLowerCase() !== 'false',
+  lavalink: {
+    url: process.env.LAVALINK_URL?.trim() || '', // host:port, no protocol
+    password: process.env.LAVALINK_PASSWORD?.trim() || '',
+    secure: (process.env.LAVALINK_SECURE ?? 'false').toLowerCase() === 'true',
+  },
   ai: {
     provider: (process.env.AI_PROVIDER?.trim() || 'anthropic') as 'anthropic' | 'openai',
     apiKey: process.env.AI_API_KEY?.trim() || '',

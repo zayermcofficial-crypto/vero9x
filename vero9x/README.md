@@ -3,7 +3,7 @@
 Moderation, leveling, economy, games, utility and AI in one bot. Node.js + TypeScript + discord.js v14 + built-in SQLite
 (`node:sqlite`, no native compiling). Purple/blue on charcoal embeds. Every server has fully independent settings.
 
-## Status (Phase 1 — 65 slash commands)
+## Status (Phase 2 — 81 slash commands)
 
 | Area | State |
 |---|---|
@@ -16,11 +16,42 @@ Moderation, leveling, economy, games, utility and AI in one bot. Node.js + TypeS
 | **Games/fun**: rps, tictactoe, guess, coinflip, 8ball, truthordare, wouldyourather, ship, rate, joke, fact, quote, compliment, roast, dailyquestion | ✅ |
 | **Utility**: help (menu), ping, botinfo, serverinfo, userinfo, avatar, banner, invite, uptime, remind, poll, suggest, calculator, timestamp, afk, profile, membercount | ✅ |
 | **AI**: /ask /summarize /translate /ai, chat by mention or in AI channels, per-server persona/instructions/daily limits | ✅ |
-| Music (Lavalink) | ⏳ needs a separate Lavalink server |
+| **Music** (Lavalink): play, pause, resume, skip, stop, queue, nowplaying, volume, loop, shuffle, remove, clearqueue, join, leave, seek, previous — button player, paginated queue, search autocomplete, DJ role | ✅ needs a Lavalink server (see *Music setup*) |
 | Tickets, giveaways, reaction/button roles, verification, voice XP, trivia/quiz/connect4/hangman/wordgame/meme, birthdays, scheduled announcements, message cleanup, multiplayer competitions | ⏳ later phases |
 
-Tested locally: TypeScript build, migrations, all 65 command definitions, leveling math, economy atomicity, XP/rank
-ordering, AI quota + injection filter, calculator (no `eval`), timestamp parsing, game logic. **Not yet tested on a live Discord server.**
+Tested locally: queue/loop/shuffle/previous logic, time parsing, TypeScript build, migrations, all 65 command definitions, leveling math, economy atomicity, XP/rank
+ordering, AI quota + injection filter, calculator (no `eval`), timestamp parsing, game logic. **Not yet tested on a live Discord server, and live audio can only be tested once Lavalink is running.**
+
+## Music setup (Lavalink)
+VERO9X streams audio through **Lavalink**, a separate small server. Supported sources: **SoundCloud** (text search + links), **Bandcamp**, **Twitch**, **Vimeo** and direct audio/radio stream URLs.
+YouTube, Spotify, Apple Music and Deezer links are intentionally **not** supported (their terms forbid ripping/streaming this way).
+
+**On Railway (second service in the same project):**
+1. **New → Docker Image** → `ghcr.io/lavalink-devs/lavalink:4`. Name the service `lavalink`.
+2. Lavalink service → Variables:
+   ```
+   LAVALINK_SERVER_PASSWORD=pick-a-long-random-password
+   SERVER_PORT=2333
+   SERVER_ADDRESS=::
+   _JAVA_OPTIONS=-Xmx512m
+   ```
+   (No Volume needed.) Wait ~1 minute for it to start; its logs should end with `Lavalink is ready to accept connections`.
+3. VERO9X service → Variables:
+   ```
+   LAVALINK_URL=lavalink.railway.internal:2333
+   LAVALINK_PASSWORD=the-same-password
+   LAVALINK_SECURE=false
+   ```
+4. VERO9X logs should show `Lavalink node "main" connected`.
+
+*If the private address doesn't connect:* on the Lavalink service click **Settings → Networking → Generate Domain** (port 2333), then set
+`LAVALINK_URL=<that-domain>:443` and `LAVALINK_SECURE=true` on the bot. Always use a strong password in that case.
+
+**Using it:** join a voice channel → `/play song name` (autocomplete suggests SoundCloud results) or paste a link.
+The now-playing message has buttons (previous, pause, skip, loop, shuffle, volume, stop). `/config dj role:@DJ` restricts
+skip/stop/volume etc. to that role (anyone can still queue songs); Manage Server holders always can.
+The bot leaves after 3 minutes of nothing playing, or 2 minutes alone in the channel.
+VERO9X needs **Connect** and **Speak** — re-invite with the link above (or `/invite`) if it says it lacks them.
 
 ## Permissions
 Commands use Discord's own permissions (e.g. `/ban` needs Ban Members, `/config` needs Manage Server). They're enforced in code
@@ -31,7 +62,7 @@ Moderators can't act on members whose top role is equal/higher than theirs. Memb
 1. https://discord.com/developers/applications → **New Application** → name it VERO9X.
 2. **Bot** → Reset Token → copy (`DISCORD_TOKEN`). Never share it. Application ID = `CLIENT_ID`.
 3. Bot tab → enable **Server Members Intent** and **Message Content Intent**.
-4. Invite: `https://discord.com/oauth2/authorize?client_id=CLIENT_ID&permissions=1099914374230&scope=bot%20applications.commands`
+4. Invite: `https://discord.com/oauth2/authorize?client_id=CLIENT_ID&permissions=1099917519958&scope=bot%20applications.commands`
 5. Drag the VERO9X role **above** roles it should moderate.
 (To make it public later: Installation tab → set the install link to Discord-provided, and turn **Public Bot** on.
 Past 100 servers Discord requires verification; message-content intent needs approval at 100+ servers.)
@@ -72,5 +103,7 @@ Needs **Node 22.13+**. Works on Windows, Linux VPS and Pterodactyl (startup: `np
 - `Used disallowed intents`: enable the two privileged intents in the Portal.
 - "Missing permissions": move VERO9X's role above the target's top role.
 - Data vanishes after deploy: Railway Volume missing or `DATA_DIR` isn't `/data`.
+- Music says offline: check the Lavalink service is running, `LAVALINK_URL`/`LAVALINK_PASSWORD` match, and the bot logs show `Lavalink node "main" connected`.
+- No sound / "missing Connect and Speak": re-invite with the link above or grant those permissions on the voice channel.
 - AI silent: set `AI_API_KEY`, then mention the bot or `/ai channel`.
 - `node:sqlite` not found: host must run Node 22.13+.

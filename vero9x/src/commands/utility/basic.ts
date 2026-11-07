@@ -4,7 +4,7 @@ import { Command } from '../../types';
 import { embed, errorEmbed } from '../../utils/embeds';
 
 const P = PermissionsBitField.Flags;
-export const INVITE_PERMS = new PermissionsBitField([P.ViewChannel, P.SendMessages, P.EmbedLinks, P.ReadMessageHistory, P.AddReactions,
+export const INVITE_PERMS = new PermissionsBitField([P.ViewChannel, P.SendMessages, P.EmbedLinks, P.ReadMessageHistory, P.AddReactions, P.Connect, P.Speak,
   P.ManageMessages, P.ManageChannels, P.ManageRoles, P.ManageNicknames, P.KickMembers, P.BanMembers, P.ModerateMembers]);
 
 const ping: Command = {
