@@ -29,7 +29,11 @@ export function initMusic(client: Client): void {
   shoukaku = new Shoukaku(new Connectors.DiscordJS(client), [{ name: 'main', url, auth: password, secure }], {
     resume: true, resumeTimeout: 30, reconnectTries: 15, reconnectInterval: 5, voiceConnectionTimeout: 15,
   });
-  shoukaku.on('ready', (name) => logger.info(`Lavalink node "${name}" connected`));
+  shoukaku.on('ready', (name) => {
+    logger.info(`Lavalink node "${name}" connected`);
+    // Warm-up: the first SoundCloud lookup makes Lavalink fetch a client ID; do it now so users never hit that race.
+    void shoukaku?.getIdealNode()?.rest.resolve('scsearch:warmup').catch(() => undefined);
+  });
   shoukaku.on('error', (name, err) => logger.warn(`Lavalink node "${name}" error`, err));
   shoukaku.on('disconnect', (name) => logger.warn(`Lavalink node "${name}" disconnected`));
 }
@@ -51,7 +55,13 @@ export async function resolveTracks(query: string, requesterId: string): Promise
   if (!node) return { tracks: [], error: 'The music server is not connected right now. Try again in a moment.' };
   const isUrl = /^https?:\/\//i.test(query);
   if (isUrl && BLOCKED_HOSTS.test(query)) return { tracks: [], error: 'YouTube, Spotify, Apple Music and Deezer links are not supported. Try a **SoundCloud** or **Bandcamp** link, or just type a song name.' };
-  const res = await node.rest.resolve(isUrl ? query : `scsearch:${query}`);
+  const identifier = isUrl ? query : `scsearch:${query}`;
+  let res = await node.rest.resolve(identifier);
+  if (!res || res.loadType === 'error') {
+    // Lookups can fail transiently (e.g. right after Lavalink starts). Wait a moment and try once more.
+    await new Promise((r) => setTimeout(r, 1200));
+    res = await node.rest.resolve(identifier);
+  }
   if (!res) return { tracks: [], error: 'The music server did not answer. Try again.' };
   switch (res.loadType) {
     case 'track': return { tracks: [toTrack(res.data, requesterId)] };
