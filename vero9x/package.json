@@ -1,0 +1,26 @@
+{
+  "name": "vero9x",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VERO9X - Minecraft PvP clan management Discord bot",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "register": "node dist/deploy-commands.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@types/node": "^22.20.5",
+    "discord.js": "^14.28.1",
+    "dotenv": "^18.0.9",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15"
+  }
+}
