@@ -43,6 +43,8 @@ export function musicAvailable(): boolean {
   return !!shoukaku && [...shoukaku.nodes.values()].some((n) => (n.state as number) === 1);
 }
 export const getSession = (guildId: string): Session | undefined => sessions.get(guildId);
+/** The connected Lavalink node (used by diagnostics). */
+export const getNode = () => shoukaku?.getIdealNode();
 
 function toTrack(t: Track, requesterId: string): MusicTrack {
   return { encoded: t.encoded, title: t.info.title, author: t.info.author, uri: t.info.uri ?? null, length: t.info.length, isStream: t.info.isStream, artwork: t.info.artworkUrl ?? null, requesterId };
